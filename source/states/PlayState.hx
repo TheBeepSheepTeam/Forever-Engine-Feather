@@ -1671,7 +1671,7 @@ class PlayState extends MusicBeatState
 	{
 		if (paused)
 		{
-			if (songMusic != null)
+			if (songMusic != null || songMusic != null)
 			{
 				songMusic.pause();
 				songMusicNew.pause();
