@@ -1371,14 +1371,20 @@ class PlayState extends MusicBeatState
 
 		if (!paused)
 		{
-			songMusic.play();
-			songMusicNew.play();
+			if (songMusic != null)
+				songMusic.play();
+			
+			if (songMusic != null)
+				songMusicNew.play();
+			
 			vocals.play();
 			bf_vocals.play();
 			opp_vocals.play();
 
-			songMusic.onComplete = finishSong.bind();
-			songMusicNew.onComplete = finishSong.bind();
+			if (SONG.instType == "Legacy" || SONG.instType == null)
+				songMusic.onComplete = finishSong.bind();
+			else
+				songMusicNew.onComplete = finishSong.bind();
 
 			resyncVocals();
 
@@ -1418,9 +1424,15 @@ class PlayState extends MusicBeatState
 		updateRPC(false);
 
 		if (SONG.instType == "Legacy" || SONG.instType == null)
+		{
 			songMusic = new FlxSound().loadEmbedded(Paths.inst(SONG.song), false, true);
+			songMusicNew = new FlxSound();
+		}
 		else
+		{
 			songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(SONG.song, CoolUtil.difficultyString.toLowerCase()), false, true);
+			songMusic = new FlxSound();
+		}
 
 		if (SONG.needsVoices)
 		{
@@ -1435,7 +1447,8 @@ class PlayState extends MusicBeatState
 			opp_vocals = new FlxSound();
 		}
 
-		FlxG.sound.list.add((SONG.instType == "Legacy" || SONG.instType == null) ? songMusic : songMusicNew);
+		FlxG.sound.list.add(songMusic);
+		FlxG.sound.list.add(songMusicNew);
 		FlxG.sound.list.add(vocals);
 		FlxG.sound.list.add(bf_vocals);
 		FlxG.sound.list.add(opp_vocals);
