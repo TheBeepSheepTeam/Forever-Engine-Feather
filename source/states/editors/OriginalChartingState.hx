@@ -639,12 +639,24 @@ class OriginalChartingState extends MusicBeatState
 
 		pauseMusic();
 
-		songMusic.onComplete = function()
+		if (_song.instType == "Legacy")
 		{
-			ForeverTools.killMusic([songMusic, songMusicNew, vocals, bf_vocals, opp_vocals]);
-			loadSong(daSong);
-			changeSection();
-		};
+			songMusic.onComplete = function()
+			{
+				ForeverTools.killMusic([songMusic, songMusicNew, vocals, bf_vocals, opp_vocals]);
+				loadSong(daSong);
+				changeSection();
+			};
+		}
+		else
+		{
+			songMusicNew.onComplete = function()
+			{
+				ForeverTools.killMusic([songMusic, songMusicNew, vocals, bf_vocals, opp_vocals]);
+				loadSong(daSong);
+				changeSection();
+			};
+		}
 		//
 	}
 
