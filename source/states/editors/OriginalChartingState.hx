@@ -594,7 +594,7 @@ class OriginalChartingState extends MusicBeatState
 			opp_vocals.stop();
 
 		songMusic = new FlxSound().loadEmbedded(Paths.inst(daSong), false, true);
-		songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(daSong, CoolUtil.difficultyString.toLowerCase()), false, true);;
+		songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(daSong, CoolUtil.difficultyString.toLowerCase()), false, true);
 		if (_song.needsVoices)
 		{
 			vocals = new FlxSound().loadEmbedded(Paths.voices(daSong), false, true);

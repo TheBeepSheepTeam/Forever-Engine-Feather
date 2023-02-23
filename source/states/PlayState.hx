@@ -1654,7 +1654,7 @@ class PlayState extends MusicBeatState
 		if (songMusic != null)
 			songMusic.stop();
 		
-		if (songMusicNew !- null)
+		if (songMusicNew != null)
 			songMusicNew.stop();
 		
 		if (bf_vocals != null)
