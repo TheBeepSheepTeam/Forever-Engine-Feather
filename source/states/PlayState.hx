@@ -1383,7 +1383,8 @@ class PlayState extends MusicBeatState
 
 			if (SONG.instType == "Legacy" || SONG.instType == null)
 				songMusic.onComplete = finishSong.bind();
-			else
+			
+			if (SONG.instType == "New")
 				songMusicNew.onComplete = finishSong.bind();
 
 			resyncVocals();
@@ -1392,7 +1393,8 @@ class PlayState extends MusicBeatState
 			// Song duration in a float, useful for the time left feature
 			if (SONG.instType == "Legacy" || SONG.instType == null)
 				songLength = songMusic.length;
-			else
+			
+			if (SONG.instType == "New")
 				songLength = songMusicNew.length;
 
 			// Updating Discord Rich Presence (with Time Left)
@@ -1428,7 +1430,8 @@ class PlayState extends MusicBeatState
 			songMusic = new FlxSound().loadEmbedded(Paths.inst(SONG.song), false, true);
 			songMusicNew = new FlxSound();
 		}
-		else
+		
+		if (SONG.instType == "New")
 		{
 			songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(SONG.song, CoolUtil.difficultyString.toLowerCase()), false, true);
 			songMusic = new FlxSound();
@@ -1547,10 +1550,13 @@ class PlayState extends MusicBeatState
 			vocals.pause();
 			bf_vocals.pause();
 			opp_vocals.pause();
+			
 			if (SONG.instType == "Legacy" || SONG.instType == null)
 				Conductor.songPosition = songMusic.time;
-			else
+			
+			if (SONG.instType == "New")
 				Conductor.songPosition = songMusic.time;
+			
 			vocals.time = Conductor.songPosition;
 			bf_vocals.time = Conductor.songPosition;
 			opp_vocals.time = Conductor.songPosition;
@@ -1566,7 +1572,7 @@ class PlayState extends MusicBeatState
 	{
 		super.stepHit();
 		///*
-		if (songMusic.time >= Conductor.songPosition + 20 || songMusic.time <= Conductor.songPosition - 20)
+		if (songMusic.time >= Conductor.songPosition + 20 || songMusicNew.time <= Conductor.songPosition - 20)
 			resyncVocals();
 		//*/
 
