@@ -261,7 +261,7 @@ class OriginalChartingState extends MusicBeatState
 			}
 		};
 		
-		var check_mute_vocals_bf = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y - 25, null, null, "Mute Player Vocals (in editor)", 100);
+		var check_mute_vocals_bf = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y + 22, null, null, "Mute Player Vocals (in editor)", 100);
 		check_mute_vocals_bf.checked = false;
 		check_mute_vocals_bf.callback = function()
 		{
