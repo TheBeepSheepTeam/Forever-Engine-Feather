@@ -222,21 +222,27 @@ class OriginalChartingState extends MusicBeatState
 			_song.needsVoices = check_voices.checked;
 		};
 		
-		var check_inst_type = new FlxUICheckBox(check_voices.x, check_voices.y + 25, null, null, "Inst Type" + _song.instType, 100);
-		check_inst_type.checked = false;
+		var check_inst_type = new FlxUICheckBox(check_voices.x, check_voices.y + 25, null, null, "Inst Type: " + _song.instType, 100);
+		check_inst_type.checked = (_song.instType == "Legacy" || _song.instType == null) ? false : true;
 		check_inst_type.callback = function()
 		{
 			if (check_inst_type.checked)
+			{
+				check_inst_type.text = "Inst Type: " + _song.instType;
 				_song.instType = "New";
+			}
 			else
+			{
+				check_inst_type.text = "Inst Type: " + _song.instType;
 				_song.instType = "Legacy";
+			}
 		};
 
 		var check_mute_inst = new FlxUICheckBox(10, 250, null, null, "Mute Instrumental (in editor)", 100);
 		check_mute_inst.checked = false;
 		check_mute_inst.callback = function()
 		{
-			if (_song.instType == "Legacy")
+			if (_song.instType == "Legacy" || _song.instType == null)
 			{
 				var vol:Float = 1;
 
@@ -245,7 +251,8 @@ class OriginalChartingState extends MusicBeatState
 
 				songMusic.volume = vol;
 			}
-			else
+			
+			if (_song.instType == "New")
 			{
 				var vol:Float = 1;
 				
@@ -256,7 +263,7 @@ class OriginalChartingState extends MusicBeatState
 			}
 		};
 
-		var check_mute_vocals = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y + 5, null, null, "Mute Vocals (in editor) [LEGACY]", 100);
+		var check_mute_vocals = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y, null, null, "Mute Vocals (in editor) [LEGACY]", 100);
 		check_mute_vocals.checked = false;
 		check_mute_vocals.callback = function()
 		{
@@ -271,7 +278,7 @@ class OriginalChartingState extends MusicBeatState
 			}
 		};
 		
-		var check_mute_vocals_bf = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y + 25, null, null, "Mute Player Vocals (in editor)", 100);
+		var check_mute_vocals_bf = new FlxUICheckBox(check_mute_inst.x + 120, check_mute_inst.y + 22, null, null, "Mute Player Vocals (in editor)", 100);
 		check_mute_vocals_bf.checked = false;
 		check_mute_vocals_bf.callback = function()
 		{
@@ -604,10 +611,18 @@ class OriginalChartingState extends MusicBeatState
 		if (opp_vocals != null)
 			opp_vocals.stop();
 
-		if (_song.instType == "Legacy")
+		if (_song.instType == "Legacy" || _song.instType == null)
+		{
 			songMusic = new FlxSound().loadEmbedded(Paths.inst(daSong), false, true);
-		else
+			songMusicNew = new FlxSound();
+		}
+		
+		if (_song.instType == "New")
+		{
 			songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(daSong, CoolUtil.difficultyString.toLowerCase()), false, true);
+			songMusic = new FlxSound();
+		}
+
 		if (_song.needsVoices)
 		{
 			vocals = new FlxSound().loadEmbedded(Paths.voices(daSong), false, true);
@@ -621,25 +636,21 @@ class OriginalChartingState extends MusicBeatState
 			opp_vocals = new FlxSound();
 		}
 		
-		if (_song.instType == "Legacy")
-			FlxG.sound.list.add(songMusic);
-		else
-			FlxG.sound.list.add(songMusicNew);
+		FlxG.sound.list.add(songMusic);
+		FlxG.sound.list.add(songMusicNew);
 		FlxG.sound.list.add(bf_vocals);
 		FlxG.sound.list.add(opp_vocals);
 		FlxG.sound.list.add(vocals);
 
-		if (_song.instType == "Legacy")
-			songMusic.play();
-		else
-			songMusicNew.play();
+		songMusic.play();
+		songMusicNew.play();
 		bf_vocals.play();
 		opp_vocals.play();
 		vocals.play();
 
 		pauseMusic();
 
-		if (_song.instType == "Legacy")
+		if (_song.instType == "Legacy" || _song.instType == null)
 		{
 			songMusic.onComplete = function()
 			{
@@ -648,7 +659,8 @@ class OriginalChartingState extends MusicBeatState
 				changeSection();
 			};
 		}
-		else
+		
+		if (_song.instType == "New")
 		{
 			songMusicNew.onComplete = function()
 			{
@@ -662,13 +674,14 @@ class OriginalChartingState extends MusicBeatState
 
 	function pauseMusic()
 	{
-		if (_song.instType == "Legacy")
+		if (_song.instType == "Legacy" || _song.instType == null)
 		{
 			songMusic.time = Math.max(songMusic.time, 0);
 			songMusic.time = Math.min(songMusic.time, songMusic.length);
 			songMusic.pause();
 		}
-		else
+		
+		if (_song.instType == "New")
 		{
 			songMusicNew.time = Math.max(songMusicNew.time, 0);
 			songMusicNew.time = Math.min(songMusicNew.time, songMusicNew.length);
@@ -809,7 +822,11 @@ class OriginalChartingState extends MusicBeatState
 	{
 		curStep = recalculateSteps();
 
-		Conductor.songPosition = songMusic.time;
+		if (_song.instType == "Legacy" || _song.instType == null)
+			Conductor.songPosition = songMusic.time;
+
+		if (_song.instType == "New")
+			Conductor.songPosition = songMusicNew.time;
 
 		if (curStep > -1)
 			strumLine.y = getYfromStrum((Conductor.songPosition - sectionStartTime()) % (Conductor.stepCrochet * _song.notes[curSection].lengthInSteps));
@@ -1007,16 +1024,17 @@ class OriginalChartingState extends MusicBeatState
 				opp_vocals.pause();
 				vocals.pause();
 
-				songMusic.time -= (FlxG.mouse.wheel * Conductor.stepCrochet * 0.4);
-				songMusicNew.time -= (FlxG.mouse.wheel * Conductor.stepCrochet * 0.4);
-				if (_song.instType == "Legacy")
+				if (_song.instType == "Legacy" || _song.instType == null)
 				{
+					songMusic.time -= (FlxG.mouse.wheel * Conductor.stepCrochet * 0.4);
 					vocals.time = songMusic.time;
 					bf_vocals.time = songMusic.time;
 					opp_vocals.time = songMusic.time;
 				}
-				else
+				
+				if (_song.instType == "New")
 				{
+					songMusicNew.time -= (FlxG.mouse.wheel * Conductor.stepCrochet * 0.4);
 					vocals.time = songMusicNew.time;
 					bf_vocals.time = songMusicNew.time;
 					opp_vocals.time = songMusicNew.time;
@@ -1052,13 +1070,14 @@ class OriginalChartingState extends MusicBeatState
 					songMusicNew.time += daTime;
 				}
 
-				if (_song.instType == "Legacy")
+				if (_song.instType == "Legacy" || _song.instType == null)
 				{
 					vocals.time = songMusic.time;
 					bf_vocals.time = songMusic.time;
 					opp_vocals.time = songMusic.time;
 				}
-				else
+				
+				if (_song.instType == "New")
 				{
 					vocals.time = songMusicNew.time;
 					bf_vocals.time = songMusicNew.time;
@@ -1135,11 +1154,21 @@ class OriginalChartingState extends MusicBeatState
 		}
 		for (i in 0...Conductor.bpmChangeMap.length)
 		{
-			if (songMusic.time > Conductor.bpmChangeMap[i].songTime)
-				lastChange = Conductor.bpmChangeMap[i];
+			if (_song.instType == "Legacy" || _song.instType == null)
+				if (songMusic.time > Conductor.bpmChangeMap[i].songTime)
+					lastChange = Conductor.bpmChangeMap[i];
+
+			if (_song.instType == "New")
+				if (songMusicNew.time > Conductor.bpmChangeMap[i].songTime)
+					lastChange = Conductor.bpmChangeMap[i];
 		}
 
-		curStep = lastChange.stepTime + Math.floor((songMusic.time - lastChange.songTime) / Conductor.stepCrochet);
+		if (_song.instType == "Legacy" || _song.instType == null)
+			curStep = lastChange.stepTime + Math.floor((songMusic.time - lastChange.songTime) / Conductor.stepCrochet);
+		
+		if (_song.instType == "New")
+			curStep = lastChange.stepTime + Math.floor((songMusicNew.time - lastChange.songTime) / Conductor.stepCrochet);
+
 		curBeat = Math.floor(curStep / 4);
 
 		return curStep;
@@ -1156,8 +1185,11 @@ class OriginalChartingState extends MusicBeatState
 		opp_vocals.pause();
 
 		// Basically old shit from changeSection???
-		songMusic.time = sectionStartTime();
-		songMusicNew.time = sectionStartTime();
+		if (_song.instType == "Legacy" || _song.instType == null)
+			songMusic.time = sectionStartTime();
+
+		if (_song.instType == "New")
+			songMusicNew.time = sectionStartTime();
 
 		if (songBeginning)
 		{
@@ -1166,13 +1198,14 @@ class OriginalChartingState extends MusicBeatState
 			curSection = 0;
 		}
 
-		if (_song.instType == "Legacy")
+		if (_song.instType == "Legacy" || _song.instType == null)
 		{
 			vocals.time = songMusic.time;
 			bf_vocals.time = songMusic.time;
 			opp_vocals.time = songMusic.time;
 		}
-		else
+		
+		if (_song.instType == "New")
 		{
 			vocals.time = songMusicNew.time;
 			bf_vocals.time = songMusicNew.time;
@@ -1202,18 +1235,18 @@ class OriginalChartingState extends MusicBeatState
 				vocals.pause();
 				bf_vocals.pause();
 				opp_vocals.pause();
-
-				songMusic.time = sectionStartTime();
-				songMusicNew.time = sectionStartTime();
 				
-				if (_song.instType == "Legacy")
+				if (_song.instType == "Legacy" || _song.instType == null)
 				{
+					songMusic.time = sectionStartTime();
 					vocals.time = songMusic.time;
 					bf_vocals.time = songMusic.time;
 					opp_vocals.time = songMusic.time;
 				}
-				else
+				
+				if (_song.instType == "New")
 				{
+					songMusicNew.time = sectionStartTime();
 					vocals.time = songMusicNew.time;
 					bf_vocals.time = songMusicNew.time;
 					opp_vocals.time = songMusicNew.time;
