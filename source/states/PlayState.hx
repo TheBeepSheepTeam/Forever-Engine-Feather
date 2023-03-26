@@ -69,6 +69,9 @@ class PlayState extends MusicBeatState
 	public static var songMusic:FlxSound;
 	public static var songLength:Float = 0;
 	public static var vocals:FlxSound;
+	public static var bf_vocals:FlxSound;
+	public static var opp_vocals:FlxSound;
+	public static var songMusicNew:FlxSound;
 
 	public var generatedMusic:Bool = false;
 
@@ -459,7 +462,11 @@ class PlayState extends MusicBeatState
 			if (generatedMusic)
 			{
 				var previousTime:Float = Conductor.songPosition;
-				Conductor.songPosition = songMusic.time;
+				if (SONG.instType == "Legacy" || SONG.instType == null)
+					Conductor.songPosition = songMusic.time;
+
+				if (SONG.instType == "New")
+					Conductor.songPosition = songMusicNew.time;
 				// improved this a little bit, maybe its a lil
 				var possibleNoteList:Array<Note> = [];
 				var pressedNotes:Array<Note> = [];
@@ -613,7 +620,10 @@ class PlayState extends MusicBeatState
 			+ char.characterData.camOffsets[1]);
 
 		if (char.curCharacter == 'mom')
+		{
 			vocals.volume = 1;
+			opp_vocals.volume = 1;
+		}
 	}
 
 	override public function update(elapsed:Float)
@@ -816,6 +826,8 @@ class PlayState extends MusicBeatState
 										return;
 
 									vocals.volume = 0;
+									bf_vocals.volume = 0;
+									
 									missNoteCheck((Init.trueSettings.get('Ghost Tapping')) ? true : false, daNote.noteData, strumline,
 										Init.trueSettings.get("Display Miss Judgement"));
 								}
@@ -880,6 +892,9 @@ class PlayState extends MusicBeatState
 		{
 			coolNote.wasGoodHit = true;
 			vocals.volume = 1;
+			
+			if (strumline == bfStrums) bf_vocals.volume = 1;
+			if (strumline == dadStrums) opp_vocals.volume = 1;
 
 			callFunc(coolNote.mustPress ? 'goodNoteHit' : 'opponentNoteHit', [coolNote, strumline]);
 
@@ -1360,16 +1375,31 @@ class PlayState extends MusicBeatState
 
 		if (!paused)
 		{
-			songMusic.play();
+			if (songMusic != null)
+				songMusic.play();
+			
+			if (songMusic != null)
+				songMusicNew.play();
+			
 			vocals.play();
+			bf_vocals.play();
+			opp_vocals.play();
 
-			songMusic.onComplete = finishSong.bind();
+			if (SONG.instType == "Legacy" || SONG.instType == null)
+				songMusic.onComplete = finishSong.bind();
+			
+			if (SONG.instType == "New")
+				songMusicNew.onComplete = finishSong.bind();
 
 			resyncVocals();
 
 			#if desktop
 			// Song duration in a float, useful for the time left feature
-			songLength = songMusic.length;
+			if (SONG.instType == "Legacy" || SONG.instType == null)
+				songLength = songMusic.length;
+			
+			if (SONG.instType == "New")
+				songLength = songMusicNew.length;
 
 			// Updating Discord Rich Presence (with Time Left)
 			updateRPC(false);
@@ -1399,15 +1429,36 @@ class PlayState extends MusicBeatState
 		// Updating Discord Rich Presence.
 		updateRPC(false);
 
-		songMusic = new FlxSound().loadEmbedded(Paths.inst(SONG.song), false, true);
+		if (SONG.instType == "Legacy" || SONG.instType == null)
+		{
+			songMusic = new FlxSound().loadEmbedded(Paths.inst(SONG.song), false, true);
+			songMusicNew = new FlxSound();
+		}
+		
+		if (SONG.instType == "New")
+		{
+			songMusicNew = new FlxSound().loadEmbedded(Paths.instNew(SONG.song, CoolUtil.difficultyString.toLowerCase()), false, true);
+			songMusic = new FlxSound();
+		}
 
 		if (SONG.needsVoices)
+		{
 			vocals = new FlxSound().loadEmbedded(Paths.voices(SONG.song), false, true);
+			bf_vocals = new FlxSound().loadEmbedded(Paths.voicesPlayer(SONG.song, CoolUtil.difficultyString.toLowerCase()), false, true);
+			opp_vocals = new FlxSound().loadEmbedded(Paths.voicesOpp(SONG.song, CoolUtil.difficultyString.toLowerCase()), false, true);
+		}
 		else
+		{
 			vocals = new FlxSound();
+			bf_vocals = new FlxSound();
+			opp_vocals = new FlxSound();
+		}
 
 		FlxG.sound.list.add(songMusic);
+		FlxG.sound.list.add(songMusicNew);
 		FlxG.sound.list.add(vocals);
+		FlxG.sound.list.add(bf_vocals);
+		FlxG.sound.list.add(opp_vocals);
 
 		notesGroup = new Notefield();
 		add(notesGroup);
@@ -1499,11 +1550,25 @@ class PlayState extends MusicBeatState
 		if (!endingSong)
 		{
 			songMusic.pause();
+			songMusicNew.pause();
 			vocals.pause();
-			Conductor.songPosition = songMusic.time;
+			bf_vocals.pause();
+			opp_vocals.pause();
+			
+			if (SONG.instType == "Legacy" || SONG.instType == null)
+				Conductor.songPosition = songMusic.time;
+			
+			if (SONG.instType == "New")
+				Conductor.songPosition = songMusicNew.time;
+			
 			vocals.time = Conductor.songPosition;
+			bf_vocals.time = Conductor.songPosition;
+			opp_vocals.time = Conductor.songPosition;
 			songMusic.play();
+			songMusicNew.play();
 			vocals.play();
+			bf_vocals.play();
+			opp_vocals.play();
 		}
 	}
 
@@ -1511,8 +1576,13 @@ class PlayState extends MusicBeatState
 	{
 		super.stepHit();
 		///*
-		if (songMusic.time >= Conductor.songPosition + 20 || songMusic.time <= Conductor.songPosition - 20)
-			resyncVocals();
+		if (SONG.instType == "Legacy" || SONG.instType == null)
+			if (songMusic.time >= Conductor.songPosition + 20)
+				resyncVocals();
+
+		if (SONG.instType == "New")
+			if (songMusicNew.time <= Conductor.songPosition + 20)
+				resyncVocals();
 		//*/
 
 		for (strumline in strumLines)
@@ -1612,7 +1682,16 @@ class PlayState extends MusicBeatState
 		// simply stated, resets the playstate's music for other states and substates
 		if (songMusic != null)
 			songMusic.stop();
-
+		
+		if (songMusicNew != null)
+			songMusicNew.stop();
+		
+		if (bf_vocals != null)
+			bf_vocals.stop();
+		
+		if (opp_vocals != null)
+			opp_vocals.stop();
+		
 		if (vocals != null)
 			vocals.stop();
 	}
@@ -1621,10 +1700,13 @@ class PlayState extends MusicBeatState
 	{
 		if (paused)
 		{
-			if (songMusic != null)
+			if (songMusic != null || songMusicNew != null)
 			{
 				songMusic.pause();
+				songMusicNew.pause();
 				vocals.pause();
+				bf_vocals.pause();
+				opp_vocals.pause();
 			}
 		}
 
@@ -1635,7 +1717,7 @@ class PlayState extends MusicBeatState
 	{
 		if (paused)
 		{
-			if (songMusic != null && !startingSong)
+			if (songMusic != null && !startingSong || songMusicNew != null && !startingSong)
 				resyncVocals();
 
 			// resume all tweens and timers
@@ -1671,8 +1753,13 @@ class PlayState extends MusicBeatState
 		var onFinish:Void->Void = endSong;
 
 		songMusic.volume = 0;
+		songMusicNew.volume = 0;
 		vocals.volume = 0;
+		bf_vocals.volume = 0;
+		opp_vocals.volume = 0;
 		vocals.pause();
+		bf_vocals.pause();
+		opp_vocals.pause();
 
 		if (ignoreOffset || Init.trueSettings['Offset'] <= 0)
 			onFinish();
@@ -1745,7 +1832,7 @@ class PlayState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 
 			PlayState.SONG = Song.loadFromJson(song.toLowerCase() + diff, song);
-			ForeverTools.killMusic([songMusic, vocals]);
+			ForeverTools.killMusic([songMusic, songMusicNew, vocals, bf_vocals, opp_vocals]);
 
 			// deliberately did not use the main.switchstate as to not unload the assets
 			FlxG.switchState(new PlayState());
