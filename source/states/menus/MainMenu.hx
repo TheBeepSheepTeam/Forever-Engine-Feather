@@ -24,7 +24,7 @@ using StringTools;
  * This is the main menu state! Not a lot is going to change about it so it'll remain similar to the original, but I do want to condense some code and such.
  * Get as expressive as you can with this, create your own menu!
  * 
- * I really need to make a structure to manage and customize menus haha @BeastlyGhost
+ * I really need to make a structure to manage and customize menus haha @KookerFoxYT
 **/
 class MainMenu extends MusicBeatState
 {
@@ -129,7 +129,7 @@ class MainMenu extends MusicBeatState
 		updateSelection();
 
 		// from the base game lol
-		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, 'Forever Engine: Feather v${Main.game.versionFF} - Legacy v${Main.game.versionFE}', 12);
+		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, 'Funkin Strucker v${Main.game.versionFF} - Legacy v${Main.game.versionFE}', 12);
 		versionShit.setFormat(Paths.font("vcr"), 16, 0xFFFFFFFF, ForeverTools.setTextAlign('left'), FlxTextBorderStyle.OUTLINE, 0xFF000000);
 		versionShit.scrollFactor.set();
 		add(versionShit);
