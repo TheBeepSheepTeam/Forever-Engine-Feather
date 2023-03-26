@@ -1,6 +1,10 @@
 [HIGH PRIORITY]
 - Remove the Base Game and Distribute it as separate from the base engine
-- Improved Stability
+- Improve Stability
+- A full character editor (psych is boring, should we get this to have a character editor ghkrkyuh)
+
+[MEDIUM PRIORITY]
+- Lua Script support (i may hate lua but hscript is harder anyway)
 
 [LOW PRIORITTY]
 - More Robust Error Handling
